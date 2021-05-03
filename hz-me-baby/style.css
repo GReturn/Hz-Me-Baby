@@ -1,0 +1,21 @@
+@font-face { 
+    font-family:Theano-Didot; src: url('fonts/theano-didot/TheanoDidot-Regular.ttf'); 
+    } 
+
+button{
+    height:50px;
+    width:50px;
+    }
+
+button.p{
+    height:75px;
+    width:80px;
+           }
+
+body {
+    font-family:Verdana;
+    font-size:medium;
+    text-align: center;
+    background-color:#0a343f;
+    color:#03e2a5;
+    }
