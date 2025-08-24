@@ -9,5 +9,5 @@ Control sound frequencies! Go from infrasonic (&lt;20 Hz) to ultrasonic (>20000 
 ### Credits:
 Thank you Steve Mould for the Javascript code. Check out [his version here][original]!
 
-[page link]: https://greturn.github.io/Hz-Me-Baby/
+[page link]: hz-me-baby.lindrew.cc/
 [original]: https://gist.github.com/steventhebrave/7c16a72fb940b05b5e5218390418b5bf
