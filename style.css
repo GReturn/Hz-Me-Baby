@@ -476,3 +476,201 @@ input[type="range"]::-webkit-slider-thumb:hover {
     font-style: italic;
 }
 
+/* Advanced Accordion Layout */
+.advanced-section {
+    margin-top: 25px;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(10, 10, 15, 0.4);
+    transition: border-color 0.3s;
+}
+
+.advanced-section:focus-within,
+.advanced-section:hover {
+    border-color: rgba(0, 242, 254, 0.3);
+}
+
+.accordion-trigger {
+    width: 100%;
+    padding: 18px 24px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.accordion-trigger:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.accordion-trigger .arrow {
+    font-size: 0.8rem;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--neon-cyan);
+    text-shadow: var(--glow-cyan);
+}
+
+.accordion-trigger.active .arrow {
+    transform: rotate(180deg);
+    color: var(--neon-magenta);
+    text-shadow: var(--glow-magenta);
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(5, 5, 8, 0.5);
+}
+
+.accordion-content.open {
+    max-height: 600px; /* High enough to contain the grid comfortably */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.advanced-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 24px;
+}
+
+@media (max-width: 640px) {
+    .advanced-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.advanced-card {
+    background: rgba(22, 24, 38, 0.85);
+}
+
+.card-header-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+}
+
+.card-header-toggle h3 {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Custom CSS Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-secondary);
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: rgba(0, 242, 254, 0.1);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+    background-color: var(--neon-cyan);
+    box-shadow: var(--glow-cyan);
+}
+
+.control-row {
+    margin-bottom: 18px;
+}
+
+.control-row:last-child {
+    margin-bottom: 0;
+}
+
+.control-row label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 8px;
+}
+
+.control-row label span {
+    font-family: var(--font-mono);
+    color: var(--neon-cyan);
+    font-weight: bold;
+}
+
+/* Toggle Sub Buttons (Pitch/Volume toggle group) */
+.toggle-group {
+    display: flex;
+    gap: 8px;
+}
+
+.toggle-sub-btn {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggle-sub-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.toggle-sub-btn.active {
+    background: rgba(255, 0, 127, 0.1);
+    border-color: var(--neon-magenta);
+    color: var(--neon-magenta);
+    text-shadow: var(--glow-magenta);
+}
+
+

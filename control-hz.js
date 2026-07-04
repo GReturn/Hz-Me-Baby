@@ -1,8 +1,11 @@
 // Global Audio Variables
 let audioCtx = null;
 let oscillatorNode = null;
+let filterNode = null;
 let gainNode = null;
 let analyserNode = null;
+let lfoNode = null;
+let lfoGain = null;
 let isPlaying = false;
 let animationFrameId = null;
 
@@ -15,7 +18,16 @@ const options = {
   grossTune: 5,
   mediumTune: 0.5,
   fineTune: 0.05,
-  waveform: "sine"
+  waveform: "sine",
+  
+  // Advanced Features State
+  filterEnabled: false,
+  filterCutoff: 20000,
+  filterQ: 1.0,
+  lfoEnabled: false,
+  lfoTarget: "pitch", // "pitch" or "volume"
+  lfoRate: 5.0,
+  lfoDepth: 50
 };
 
 const keys = [
@@ -40,6 +52,30 @@ const volumeSlider = document.getElementById("volume-slider");
 const canvas = document.getElementById("oscilloscope");
 const canvasCtx = canvas.getContext("2d");
 
+// Advanced Accordion DOM Elements
+const advancedToggle = document.getElementById("advanced-toggle");
+const advancedPanel = document.getElementById("advanced-panel");
+
+const filterEnableCheck = document.getElementById("filter-enable");
+const filterCutoffSlider = document.getElementById("filter-cutoff");
+const filterCutoffVal = document.getElementById("cutoff-val");
+const filterQSlider = document.getElementById("filter-q");
+const filterQVal = document.getElementById("q-val");
+
+const lfoEnableCheck = document.getElementById("lfo-enable");
+const lfoTargetPitch = document.getElementById("lfo-target-pitch");
+const lfoTargetVolume = document.getElementById("lfo-target-volume");
+const lfoRateSlider = document.getElementById("lfo-rate");
+const lfoRateVal = document.getElementById("lfo-rate-val");
+const lfoDepthSlider = document.getElementById("lfo-depth");
+const lfoDepthVal = document.getElementById("lfo-depth-val");
+
+// Accordion Toggle
+advancedToggle.addEventListener("click", () => {
+  advancedToggle.classList.toggle("active");
+  advancedPanel.classList.toggle("open");
+});
+
 // Set canvas dimensions
 function resizeCanvas() {
   canvas.width = canvas.parentElement.clientWidth;
@@ -54,23 +90,83 @@ function initAudio() {
   
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   oscillatorNode = audioCtx.createOscillator();
+  filterNode = audioCtx.createBiquadFilter();
   gainNode = audioCtx.createGain();
   analyserNode = audioCtx.createAnalyser();
   
   analyserNode.fftSize = 1024;
   
-  oscillatorNode.connect(gainNode);
+  // Set up primary chain: Osc -> Filter -> Master Gain -> Analyser -> Output
+  oscillatorNode.connect(filterNode);
+  filterNode.connect(gainNode);
   gainNode.connect(analyserNode);
   analyserNode.connect(audioCtx.destination);
   
   oscillatorNode.type = options.waveform;
   oscillatorNode.frequency.setValueAtTime(options.frequency, audioCtx.currentTime);
   
+  // Configure Filter
+  filterNode.type = "lowpass";
+  updateFilterSettings();
+  
+  // Set up LFO Modulator nodes
+  lfoNode = audioCtx.createOscillator();
+  lfoGain = audioCtx.createGain();
+  
+  lfoNode.frequency.setValueAtTime(options.lfoRate, audioCtx.currentTime);
+  lfoNode.connect(lfoGain);
+  lfoNode.start();
+  
+  updateLFO();
+  
   // Start with 0 volume
   gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
   oscillatorNode.start();
   
   startVisualizer();
+}
+
+// Lowpass Filter Updates
+function updateFilterSettings() {
+  if (!filterNode) return;
+  
+  if (options.filterEnabled) {
+    // Logarithmic curve lookup or direct value
+    filterNode.frequency.setTargetAtTime(options.filterCutoff, audioCtx.currentTime, 0.015);
+    filterNode.Q.setTargetAtTime(options.filterQ, audioCtx.currentTime, 0.015);
+  } else {
+    // Open filter fully
+    filterNode.frequency.setTargetAtTime(20000, audioCtx.currentTime, 0.015);
+    filterNode.Q.setTargetAtTime(1.0, audioCtx.currentTime, 0.015);
+  }
+}
+
+// LFO Modulator routing & depth automation
+function updateLFO() {
+  if (!lfoNode || !lfoGain) return;
+  
+  // Set LFO rate
+  lfoNode.frequency.setTargetAtTime(options.lfoRate, audioCtx.currentTime, 0.02);
+  
+  // Clean disconnect
+  try {
+    lfoGain.disconnect();
+  } catch (e) {}
+  
+  if (options.lfoEnabled && isPlaying) {
+    if (options.lfoTarget === "pitch") {
+      lfoGain.connect(oscillatorNode.frequency);
+      // Map depth percentage (0-100) to pitch offset (0-150 Hz)
+      lfoGain.gain.setTargetAtTime((options.lfoDepth / 100) * 150, audioCtx.currentTime, 0.02);
+    } else if (options.lfoTarget === "volume") {
+      lfoGain.connect(gainNode.gain);
+      // Map depth percentage (0-100) to master volume scale offset
+      lfoGain.gain.setTargetAtTime((options.lfoDepth / 100) * options.volume, audioCtx.currentTime, 0.02);
+    }
+  } else {
+    // Disable LFO impact by setting its gain to 0
+    lfoGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+  }
 }
 
 // Master Toggle Playback
@@ -93,6 +189,7 @@ function toggleSynth() {
     playBtn.classList.add("playing");
     playIcon.style.display = "none";
     pauseIcon.style.display = "block";
+    updateLFO(); // recalculate routing
   } else {
     // Stop: ramp volume to 0
     gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.015);
@@ -103,6 +200,7 @@ function toggleSynth() {
     playBtn.classList.remove("playing");
     playIcon.style.display = "block";
     pauseIcon.style.display = "none";
+    updateLFO(); // Reset LFO connections and set gain to 0
   }
 }
 
@@ -113,6 +211,10 @@ volumeSlider.addEventListener("input", (e) => {
   options.volume = parseFloat(e.target.value);
   if (isPlaying && gainNode) {
     gainNode.gain.setTargetAtTime(options.volume, audioCtx.currentTime, 0.01);
+  }
+  // Re-scale LFO volume depth mapping dynamically
+  if (options.lfoEnabled && options.lfoTarget === "volume") {
+    updateLFO();
   }
 });
 
@@ -143,7 +245,6 @@ presetButtons.forEach(btn => {
 
 // Frequency Mutator
 function setFrequency(value) {
-  // Clamp values to audible/safe range
   const clamped = Math.max(20, Math.min(20000, value));
   options.frequency = clamped;
   
@@ -185,8 +286,6 @@ function stopTune() {
 // Keyboard Listeners
 document.addEventListener("keydown", (e) => {
   if (e.repeat) return;
-  
-  // If editing the input, don't trigger hotkeys
   if (document.activeElement === frequencyInput) return;
   
   // Spacebar play/pause
@@ -253,10 +352,61 @@ frequencyInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     frequencyInput.blur();
   } else if (e.key === "Escape") {
-    // Revert change
     frequencyInput.value = options.frequency.toFixed(2);
     frequencyInput.blur();
   }
+});
+
+// Advanced Filter Controls Events
+filterEnableCheck.addEventListener("change", (e) => {
+  options.filterEnabled = e.target.checked;
+  if (!audioCtx) initAudio();
+  updateFilterSettings();
+});
+
+filterCutoffSlider.addEventListener("input", (e) => {
+  options.filterCutoff = parseFloat(e.target.value);
+  filterCutoffVal.textContent = options.filterCutoff;
+  updateFilterSettings();
+});
+
+filterQSlider.addEventListener("input", (e) => {
+  options.filterQ = parseFloat(e.target.value);
+  filterQVal.textContent = options.filterQ.toFixed(1);
+  updateFilterSettings();
+});
+
+// Advanced LFO Controls Events
+lfoEnableCheck.addEventListener("change", (e) => {
+  options.lfoEnabled = e.target.checked;
+  if (!audioCtx) initAudio();
+  updateLFO();
+});
+
+lfoTargetPitch.addEventListener("click", () => {
+  lfoTargetVolume.classList.remove("active");
+  lfoTargetPitch.classList.add("active");
+  options.lfoTarget = "pitch";
+  updateLFO();
+});
+
+lfoTargetVolume.addEventListener("click", () => {
+  lfoTargetPitch.classList.remove("active");
+  lfoTargetVolume.classList.add("active");
+  options.lfoTarget = "volume";
+  updateLFO();
+});
+
+lfoRateSlider.addEventListener("input", (e) => {
+  options.lfoRate = parseFloat(e.target.value);
+  lfoRateVal.textContent = options.lfoRate.toFixed(1);
+  updateLFO();
+});
+
+lfoDepthSlider.addEventListener("input", (e) => {
+  options.lfoDepth = parseInt(e.target.value);
+  lfoDepthVal.textContent = options.lfoDepth;
+  updateLFO();
 });
 
 // Waveform Oscilloscope Drawing Loop
@@ -277,7 +427,6 @@ function startVisualizer() {
     // Set line style
     canvasCtx.lineWidth = 3;
     
-    // Color depends on playback status (pulsing cyan vs flat/resting)
     if (isPlaying) {
       canvasCtx.strokeStyle = "#00f2fe";
       canvasCtx.shadowBlur = 10;
@@ -292,7 +441,6 @@ function startVisualizer() {
     let x = 0;
     
     for (let i = 0; i < bufferLength; i++) {
-      // Scale dynamic wave values to canvas height
       const v = dataArray[i] / 128.0;
       const y = (v * canvas.height) / 2;
       
@@ -306,9 +454,10 @@ function startVisualizer() {
     
     canvasCtx.lineTo(canvas.width, canvas.height / 2);
     canvasCtx.stroke();
-    canvasCtx.shadowBlur = 0; // reset shadow
+    canvasCtx.shadowBlur = 0;
   }
   
   draw();
 }
+
 

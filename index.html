@@ -115,6 +115,62 @@
                 <div class="instructions-hint">Press keys on your keyboard to tune. Spacebar toggles audio.</div>
             </div>
         </section>
+
+        <!-- Advanced FX & Modulation Collapsible Accordion -->
+        <section class="advanced-section">
+            <button class="accordion-trigger" id="advanced-toggle">
+                <span>Advanced FX & Modulation</span>
+                <span class="arrow">▼</span>
+            </button>
+            <div class="accordion-content" id="advanced-panel">
+                <div class="advanced-grid">
+                    <!-- Biquad Filter Card -->
+                    <div class="control-card advanced-card">
+                        <div class="card-header-toggle">
+                            <h3>Biquad Lowpass Filter</h3>
+                            <label class="switch">
+                                <input type="checkbox" id="filter-enable">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="control-row">
+                            <label for="filter-cutoff">Cutoff Frequency: <span id="cutoff-val">20000</span> Hz</label>
+                            <input type="range" id="filter-cutoff" min="20" max="20000" step="1" value="20000">
+                        </div>
+                        <div class="control-row">
+                            <label for="filter-q">Resonance (Q): <span id="q-val">1.0</span></label>
+                            <input type="range" id="filter-q" min="0.001" max="25" step="0.1" value="1">
+                        </div>
+                    </div>
+
+                    <!-- LFO Modulator Card -->
+                    <div class="control-card advanced-card">
+                        <div class="card-header-toggle">
+                            <h3>LFO Modulator</h3>
+                            <label class="switch">
+                                <input type="checkbox" id="lfo-enable">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="control-row">
+                            <label>LFO Target</label>
+                            <div class="toggle-group">
+                                <button class="toggle-sub-btn active" id="lfo-target-pitch">Pitch (Vibrato)</button>
+                                <button class="toggle-sub-btn" id="lfo-target-volume">Volume (Tremolo)</button>
+                            </div>
+                        </div>
+                        <div class="control-row">
+                            <label for="lfo-rate">LFO Rate: <span id="lfo-rate-val">5.0</span> Hz</label>
+                            <input type="range" id="lfo-rate" min="0.1" max="20" step="0.1" value="5">
+                        </div>
+                        <div class="control-row">
+                            <label for="lfo-depth">LFO Depth: <span id="lfo-depth-val">50</span>%</label>
+                            <input type="range" id="lfo-depth" min="0" max="100" step="1" value="50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script type="text/javascript" src="control-hz.js"></script>
