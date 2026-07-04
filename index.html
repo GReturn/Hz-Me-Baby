@@ -4,43 +4,119 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts: Orbitron for digital readout, Inter for UI controls -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <title>HZ ME, BABY!</title>
+    <title>HZ ME, BABY! | Interactive Frequency Synth</title>
     <link rel="icon" type="image/png" href="hz-me-baby.ico">
 </head>
 
 <body>
-    <div id="controls">
-        <p>
-            <button class="start">Start</button>
-        </p>
+    <main class="synth-container">
+        <header>
+            <h1 class="logo">HZ ME, BABY!</h1>
+            <p class="subtitle">Interactive Precision Audio Synthesizer</p>
+        </header>
 
-        <h1>Frequency: <span id="frequency"></span></h1>
+        <!-- Dynamic Visualizer Oscilloscope Canvas -->
+        <section class="visualizer-container">
+            <canvas id="oscilloscope"></canvas>
+        </section>
 
-        <p>	Gross
-            <div>
-                <button value="q">Q</button>
-                <button value="w">W</button>
+        <!-- Digital Readout & Direct Text Edit -->
+        <section class="display-container">
+            <div class="readout-wrapper">
+                <div class="readout-label">FREQUENCY</div>
+                <div class="readout-value">
+                    <span id="frequency-display">500.00</span><span class="unit">Hz</span>
+                    <input type="number" id="frequency-input" step="0.01" min="20" max="20000" style="display: none;" />
+                </div>
+                <div class="status-indicators">
+                    <span class="status-badge" id="waveform-badge">SINE</span>
+                    <span class="status-badge" id="status-badge">PAUSED</span>
+                </div>
             </div>
-        </p>
-        <p>	Medium
-            <div>
-                <button value="e">E</button>
-                <button value="r">R</button>
+        </section>
+
+        <!-- Main Controls Grid -->
+        <section class="controls-grid">
+            <!-- Playback & Volume Card -->
+            <div class="control-card audio-master">
+                <h3>Master Control</h3>
+                <button id="master-play" class="btn-play">
+                    <svg viewBox="0 0 24 24" width="24" height="24" class="play-icon"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+                    <svg viewBox="0 0 24 24" width="24" height="24" class="pause-icon" style="display:none;"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    <span id="play-text">Start Synth</span>
+                </button>
+                
+                <div class="volume-control">
+                    <label for="volume-slider">Volume</label>
+                    <div class="slider-wrapper">
+                        <span class="vol-icon">🔈</span>
+                        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8">
+                        <span class="vol-icon">🔊</span>
+                    </div>
+                </div>
             </div>
-        </p>
-        <p> Fine
-            <div>
-                <button value="t">T</button>
-                <button value="y">Y</button>
+
+            <!-- Waveform Shape Selector Card -->
+            <div class="control-card wave-select">
+                <h3>Waveform Select</h3>
+                <div class="waveform-options">
+                    <button class="wave-btn active" data-wave="sine" title="Sine Wave">Sine</button>
+                    <button class="wave-btn" data-wave="square" title="Square Wave">Square</button>
+                    <button class="wave-btn" data-wave="sawtooth" title="Sawtooth Wave">Sawtooth</button>
+                    <button class="wave-btn" data-wave="triangle" title="Triangle Wave">Triangle</button>
+                </div>
             </div>
-        </p>
-    <br>
-        <p>
-            <button value="" class="p">Play/Pause</button>
-        </p>
-    </div>
-    
+
+            <!-- Frequency Presets Card -->
+            <div class="control-card presets">
+                <h3>Presets</h3>
+                <div class="preset-grid">
+                    <button class="preset-btn" data-hz="432">432 Hz <span class="desc">Cosmic</span></button>
+                    <button class="preset-btn" data-hz="440">440 Hz <span class="desc">Concert A</span></button>
+                    <button class="preset-btn" data-hz="528">528 Hz <span class="desc">Solfeggio</span></button>
+                    <button class="preset-btn" data-hz="852">852 Hz <span class="desc">Awaken</span></button>
+                </div>
+            </div>
+
+            <!-- Precision Tuning Card -->
+            <div class="control-card tuning-controls">
+                <h3>Keyboard Tuning (Hold)</h3>
+                
+                <div class="tuning-groups">
+                    <div class="tuning-group">
+                        <span class="group-label">Gross (±5Hz)</span>
+                        <div class="key-pair">
+                            <button id="key-q" value="q" class="keycap"><span class="letter">Q</span><span class="dir">▼</span></button>
+                            <button id="key-w" value="w" class="keycap"><span class="letter">W</span><span class="dir">▲</span></button>
+                        </div>
+                    </div>
+                    
+                    <div class="tuning-group">
+                        <span class="group-label">Medium (±0.5Hz)</span>
+                        <div class="key-pair">
+                            <button id="key-e" value="e" class="keycap"><span class="letter">E</span><span class="dir">▼</span></button>
+                            <button id="key-r" value="r" class="keycap"><span class="letter">R</span><span class="dir">▲</span></button>
+                        </div>
+                    </div>
+                    
+                    <div class="tuning-group">
+                        <span class="group-label">Fine (±0.05Hz)</span>
+                        <div class="key-pair">
+                            <button id="key-t" value="t" class="keycap"><span class="letter">T</span><span class="dir">▼</span></button>
+                            <button id="key-y" value="y" class="keycap"><span class="letter">Y</span><span class="dir">▲</span></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="instructions-hint">Press keys on your keyboard to tune. Spacebar toggles audio.</div>
+            </div>
+        </section>
+    </main>
+
     <script type="text/javascript" src="control-hz.js"></script>
 </body>
 </html>
